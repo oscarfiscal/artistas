@@ -1,15 +1,18 @@
+<!-- @format -->
+
 <template>
-  <hello-world />
+  <Artista />
 </template>
 
 <script>
-  import HelloWorld from '../components/HelloWorld'
+import Artista from "../components/Artista";
 
-  export default {
-    name: 'Home',
 
-    components: {
-      HelloWorld,
-    },
-  }
+export default {
+  name: "Home",
+
+  components: {
+    Artista,
+  },
+};
 </script>

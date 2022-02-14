@@ -29,10 +29,10 @@
               <v-dialog
                 transition="fab-transition"
                 v-model="dialog"
-                max-width="500px"
+                max-width="600px"
               >
-                <v-toolbar dark color="purple">
-                  <v-toolbar-title>{{ formTitle }} </v-toolbar-title>
+                <v-toolbar dark color="black">
+                  <v-toolbar-title>Nuevo artista </v-toolbar-title>
                   <v-spacer></v-spacer>
                   <v-toolbar-items>
                     <v-btn icon dark @click="dialog = false">
@@ -120,6 +120,7 @@
                   </v-card-actions>
                 </v-card>
               </v-dialog>
+              <!-- modal update -->
             </v-toolbar>
             <v-col cols="12" sm="12">
               <v-text-field
@@ -129,7 +130,7 @@
                 solo-inverted
                 hide-details
                 prepend-inner-icon="mdi-magnify"
-                label="Buscar contacto"
+                label="Buscar Artista"
               ></v-text-field>
             </v-col>
           </template>
@@ -159,7 +160,97 @@
         </v-data-table>
         <v-snackbar v-model="snackbar2" :vertical="vertical" :timeout="2000">
           {{ text }}
+          {{ text1 }}
         </v-snackbar>
+        <v-dialog
+          transition="fab-transition"
+          v-model="dialog2"
+          max-width="800px"
+        >
+          <v-toolbar dark color="black">
+            <v-toolbar-title>Actualizar </v-toolbar-title>
+            <v-spacer></v-spacer>
+            <v-toolbar-items>
+              <v-btn icon dark @click="dialog2 = false">
+                <v-icon>mdi-close</v-icon>
+              </v-btn>
+            </v-toolbar-items>
+          </v-toolbar>
+          <v-card>
+            <v-card-text>
+              <v-container>
+                <v-row>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-text-field
+                      v-model="editedItem.name"
+                      label="Nombre"
+                      prepend-icon="mdi-account"
+                      :rules="[(v) => !!v || 'Campo Obligatorio *']"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-text-field
+                      v-model="editedItem.date"
+                      type="date"
+                      label="Fecha Nacimiento"
+                      prepend-icon="mdi-calendar"
+                      :rules="[(v) => !!v || 'Campo Obligatorio *']"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-text-field
+                      v-model="editedItem.biography"
+                      label="biografia"
+                      prepend-icon="mdi-note"
+                      :rules="[(v) => !!v || 'Campo Obligatorio *']"
+                      type="text"
+                    ></v-text-field>
+                  </v-col>
+
+                  <v-col cols="12" sm="6" md="4">
+                    <v-file-input
+                      id="photo_profile"
+                      v-model="editedItem.image"
+                      :rules="[(v) => !!v || 'Campo Obligatorio *']"
+                      accept="image/png, image/jpeg, image/bmp"
+                      placeholder="Seleccione una imagen"
+                      prepend-icon="mdi-file-image-outline"
+                      label="Avatar"
+                    ></v-file-input>
+                  </v-col>
+                  <v-col cols="12" sm="6" md="4">
+                    <v-text-field
+                      v-model="editedItem.gender"
+                      label="Genero"
+                      prepend-icon="mdi-person"
+                      :rules="[(v) => !!v || 'Campo Obligatorio *']"
+                    ></v-text-field>
+                  </v-col>
+                </v-row>
+              </v-container>
+            </v-card-text>
+
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-snackbar
+                v-model="snackbar"
+                color="green"
+                :timeout="2000"
+                absolute
+                bottom
+                left
+              >
+                {{ textSnackbar }}
+              </v-snackbar>
+              <v-btn color="blue darken-1" text @click="close">
+                Cancelar
+              </v-btn>
+              <v-btn color="blue darken-1" text @click="update">
+                Guardar
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
       </v-col>
     </v-row>
   </v-container>
@@ -168,10 +259,12 @@
 export default {
   data: () => ({
     snackbar2: false,
-    text: "Artista eliminado",
+    text: "",
+    text1: "Artista actualizado correctamente",
     vertical: true,
     image: "",
     dialog: false,
+    dialog2: false,
     snackbar: false,
     textSnackbar: "Artista guardado",
     dialogDelete: false,
@@ -195,6 +288,8 @@ export default {
     ],
     desserts: [],
     editedIndex: -1,
+
+
     editedItem: {
       name: "",
       date: "",
@@ -211,11 +306,7 @@ export default {
     },
   }),
 
-  computed: {
-    formTitle() {
-      return this.editedIndex === -1 ? "Nuevo artista" : "Editar artista";
-    },
-  },
+
 
   watch: {
     dialog(val) {
@@ -255,11 +346,44 @@ export default {
           error == alert("error en servidor");
         });
     },
+    update(){
+      var id = localStorage.getItem("id");
+  const formData = new FormData();
+        let photo = document.querySelector("#photo_profile");
+        formData.append("name", this.editedItem.name);
+        formData.append("date", this.editedItem.date);
+        formData.append("biography", this.editedItem.biography);
+        formData.append("image", photo.files[0]);
+        formData.append("gender", this.editedItem.gender);
+
+
+        fetch("http://localhost:8081/api/singers/" + id, {
+        method: "POST",
+        body: formData,
+      })
+        .then((response) => response.json())
+        .then((data) => {
+
+          this.snackbar2 = true;
+           data == this.text1 ;
+             setTimeout(() => {
+            location.reload();
+          }, 1000);
+        })
+        .catch((error) => {
+          error == alert("error en servidor");
+        });
+
+
+
+    },
 
     editItem(item) {
+     localStorage.id = item.id;
       this.editedIndex = this.desserts.indexOf(item);
       this.editedItem = Object.assign({}, item);
-      this.dialog = true;
+      this.dialog2 = true;
+
     },
 
     deleteItem(item) {
@@ -270,7 +394,7 @@ export default {
         .then((data) => {
           this.desserts.splice(this.desserts.indexOf(item), 1);
           this.snackbar2 = true;
-          data == this.text;
+           this.text = data.message;
         })
         .catch((error) => {
           error == alert("error en servidor");
@@ -298,6 +422,7 @@ export default {
 
     save() {
       if (this.editedIndex > -1) {
+
         Object.assign(this.desserts[this.editedIndex], this.editedItem);
       } else {
         const formData = new FormData();
@@ -322,6 +447,9 @@ export default {
             setTimeout(() => {
               this.close();
             }, 1000);
+              setTimeout(() => {
+            location.reload();
+          }, 1050);
           })
           .catch((error) => {
             error == alert("error en servidor");
